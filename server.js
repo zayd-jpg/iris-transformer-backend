@@ -104,16 +104,15 @@ app.post("/api/iris", upload.single("image"), async (req, res) => {
         image: imageFile,
         prompt,
         size: `${IMAGE_SIZE}x${IMAGE_SIZE}`,
-        response_format: "b64_json",
+        // no response_format here – default is base64 JSON
       });
     } else {
       // Fallback: generate from prompt only (no image input).
-      // Not ideal, but avoids crashes if the SDK changes.
       response = await client.images.generate({
         model: "gpt-image-1",
         prompt,
         size: `${IMAGE_SIZE}x${IMAGE_SIZE}`,
-        response_format: "b64_json",
+        // no response_format here either
       });
     }
 
