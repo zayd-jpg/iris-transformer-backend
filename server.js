@@ -92,8 +92,8 @@ app.post("/api/iris", upload.single("image"), async (req, res) => {
     const prompt = buildPrompt(pupilMode, pupilMm);
     const imageFile = fs.createReadStream(filePath);
 
-    // 1) Call OpenAI to get the iris image
-    const response = await client.images.edits({
+    // 1) Call OpenAI to get the iris image (NOTE: .edit, not .edits)
+    const response = await client.images.edit({
       model: "gpt-image-1",
       image: imageFile,
       prompt,
@@ -109,9 +109,9 @@ app.post("/api/iris", upload.single("image"), async (req, res) => {
 
     // 2) If a fixed mm pupil was requested, overlay a precise black circle
     if (pupilMode === "fixed" && pupilMm) {
-      // Assume iris circle occupies ~90% of the full width
+      // Assume iris circle occupies ~90% of the full width (small black margin)
       const irisDiameterPx = IMAGE_SIZE * 0.9;
-      const pupilFraction = pupilMm / 12.5;
+      const pupilFraction = pupilMm / 12.5; // because iris is 12.5 mm in real life
       const pupilDiameterPx = irisDiameterPx * pupilFraction;
       const pupilRadiusPx = pupilDiameterPx / 2;
 
