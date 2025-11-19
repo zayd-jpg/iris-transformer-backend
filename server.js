@@ -92,14 +92,30 @@ app.post("/api/iris", upload.single("image"), async (req, res) => {
     const prompt = buildPrompt(pupilMode, pupilMm);
     const imageFile = fs.createReadStream(filePath);
 
-    // 1) Call OpenAI to get the iris image (NOTE: .edit, not .edits)
-    const response = await client.images.edit({
-      model: "gpt-image-1",
-      image: imageFile,
-      prompt,
-      size: `${IMAGE_SIZE}x${IMAGE_SIZE}`,
-      response_format: "b64_json",
-    });
+    // Decide which method to use on the client (edit preferred, fallback to generate)
+    const hasEdit =
+      client.images && typeof client.images.edit === "function";
+
+    let response;
+    if (hasEdit) {
+      // Proper image edit with your uploaded eye photo
+      response = await client.images.edit({
+        model: "gpt-image-1",
+        image: imageFile,
+        prompt,
+        size: `${IMAGE_SIZE}x${IMAGE_SIZE}`,
+        response_format: "b64_json",
+      });
+    } else {
+      // Fallback: generate from prompt only (no image input).
+      // Not ideal, but avoids crashes if the SDK changes.
+      response = await client.images.generate({
+        model: "gpt-image-1",
+        prompt,
+        size: `${IMAGE_SIZE}x${IMAGE_SIZE}`,
+        response_format: "b64_json",
+      });
+    }
 
     const b64 = response.data?.[0]?.b64_json;
     if (!b64) throw new Error("No image returned from OpenAI");
